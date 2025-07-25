@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Directory</title>
+  <style>
+    body {
+      background-color: #e0f2fe;
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      color: #333;
+    }
+    .header-container {
+      text-align: center;
+      background-color: #2563eb;
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    h1, .header-container p {
+      margin: 8px 0;
+    }
+    .search-container {
+      background-color: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-container input,
+    .search-container select,
+    .search-container button {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .search-container button {
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    .search-container button:hover {
+      background-color: #1d4ed8;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+    th {
+      background-color: #bfdbfe;
+      color: #1e3a8a;
+      padding: 12px;
+      border: 1px solid #ccc;
+    }
+    td {
+      padding: 12px;
+      border: 1px solid #ccc;
+    }
+    td.id {
+      color: #60a5fa;
+    }
+    td.department span {
+      background-color: #dbeafe;
+      color: #1e40af;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
+    td.year span {
+      background-color: #fed7aa;
+      color: #9a3412;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
+    td.gpa {
+      color: #16a34a;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-container">
+    <h1>Student Directory</h1>
+    <p>Search and filter students by name or department</p>
+  </div>
+
+  <div class="search-container">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <input type="text" id="searchName" placeholder="Search by name">
+      <select id="departmentFilter">
+        <option value="">All Departments</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Engineering">Engineering</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <button onclick="sortByNameAZ()">Sort Name A-Z</button>
+      <button onclick="sortByNameZA()">Sort Name Z-A</button>
+      <button onclick="sortByGPA()">Sort by GPA</button>
+      <button onclick="resetFilters()" style="background-color: #9ca3af;">Reset</button>
+    </div>
+  </div>
+
+  <div class="mb-4 text-sm">
+    <p>Total students: <span id="totalCount">10</span>, Showing: <span id="showingCount">10</span>, Avg GPA: <span id="avgGpa">3.53</span></p>
+  </div>
+
+  <div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Year</th>
+          <th>GPA</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="studentTableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const students = [
+      { id: 1, name: "Ayesha Khan", department: "Computer Science", year: 2, gpa: 3.7, email: "ayesha@uni.edu" },
+      { id: 2, name: "Nimal Silva", department: "Engineering", year: 3, gpa: 3.2, email: "nimal@uni.edu" },
+      { id: 3, name: "Ravi Raj", department: "Computer Science", year: 1, gpa: 3.9, email: "ravi@uni.edu" },
+      { id: 4, name: "Kumari Perera", department: "Engineering", year: 4, gpa: 3.5, email: "kumari@uni.edu" },
+      { id: 5, name: "John Doe", department: "Computer Science", year: 2, gpa: 3.1, email: "john@uni.edu" },
+      { id: 6, name: "Sara Ali", department: "Engineering", year: 3, gpa: 3.8, email: "sara@uni.edu" },
+      { id: 7, name: "Mohamed Rizwan", department: "Computer Science", year: 1, gpa: 3.4, email: "rizwan@uni.edu" },
+      { id: 8, name: "Thilina Jay", department: "Engineering", year: 4, gpa: 3.6, email: "thilina@uni.edu" },
+      { id: 9, name: "Ishara Madushanka", department: "Computer Science", year: 2, gpa: 3.3, email: "ishara@uni.edu" },
+      { id: 10, name: "Dilani S", department: "Engineering", year: 3, gpa: 3.6, email: "dilani@uni.edu" },
+    ];
+
+    let filtered = [...students];
+
+    function displayStudents() {
+      const tbody = document.getElementById("studentTableBody");
+      tbody.innerHTML = "";
+
+      filtered.forEach(student => {
+        const row = `<tr>
+          <td class="id">${student.id}</td>
+          <td>${student.name}</td>
+          <td class="department"><span>${student.department}</span></td>
+          <td class="year"><span>${student.year}</span></td>
+          <td class="gpa">${student.gpa}</td>
+          <td>${student.email}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+
+      document.getElementById("showingCount").textContent = filtered.length;
+
+      const avg = filtered.length > 0 
+        ? (filtered.reduce((sum, s) => sum + s.gpa, 0) / filtered.length).toFixed(2)
+        : '0.00';
+      document.getElementById("avgGpa").textContent = avg;
+    }
+
+    function sortByNameAZ() {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+      displayStudents();
+    }
+
+    function sortByNameZA() {
+      filtered.sort((a, b) => b.name.localeCompare(a.name));
+      displayStudents();
+    }
+
+    function sortByGPA() {
+      filtered.sort((a, b) => b.gpa - a.gpa);
+      displayStudents();
+    }
+
+    function resetFilters() {
+      document.getElementById("searchName").value = "";
+      document.getElementById("departmentFilter").value = "";
+      filtered = [...students];
+      displayStudents();
+    }
+
+    document.getElementById("searchName").addEventListener("input", () => {
+      const nameValue = document.getElementById("searchName").value.toLowerCase();
+      const deptValue = document.getElementById("departmentFilter").value;
+      filterStudents(nameValue, deptValue);
+    });
+
+    document.getElementById("departmentFilter").addEventListener("change", () => {
+      const nameValue = document.getElementById("searchName").value.toLowerCase();
+      const deptValue = document.getElementById("departmentFilter").value;
+      filterStudents(nameValue, deptValue);
+    });
+
+    function filterStudents(nameValue, deptValue) {
+      filtered = students.filter(student => {
+        const matchesName = student.name.toLowerCase().includes(nameValue);
+        const matchesDept = deptValue ? student.department === deptValue : true;
+        return matchesName && matchesDept;
+      });
+      displayStudents();
+    }
+
+    displayStudents();
+  </script>
+</body>
+</html>
